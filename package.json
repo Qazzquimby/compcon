@@ -30,6 +30,7 @@
     "vue": "^2.6.11",
     "vue-class-component": "^7.1.0",
     "vue-cli-plugin-vuetify": "^2.4.3",
+    "vue-croppie": "^2.0.2",
     "vue-html-secure": "^1.0.9",
     "vue-property-decorator": "^8.3.0",
     "vue-router": "^3.2.0",
