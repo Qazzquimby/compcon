@@ -35,9 +35,7 @@
         <v-col cols="12">
           <div class="text-center">
             <v-btn color="secondary" :disabled="!imageData || loading" @click="saveImage()">
-              <span v-if="!loading">
-                Set Image
-              </span>
+              <span v-if="!loading">Set Image</span>
               <v-progress-circular v-else size="25" width="3" indeterminate />
             </v-btn>
           </div>
@@ -55,22 +53,22 @@ import imgur from '../../../io/apis/imgur'
 export default Vue.extend({
   name: 'simple-image-selector',
   data: () => ({
-    imageData: null,
+    uploadedImageData: null,
     loading: false,
   }),
   computed: {
     displayImage() {
-      if (this.imageData) return `data:image/png;base64,${this.imageData}`
+      if (this.uploadedImageData) return `data:image/png;base64,${this.uploadedImageData}`
       return ''
     },
     isPixel() {
-      return this.selectedImage && path.basename(this.selectedImage).includes('_pixel')
+      return this.selectedPresetImage && path.basename(this.selectedPresetImage).includes('_pixel')
     },
   },
   methods: {
-    onChange(file: File | null) {
+    uploadImage(file: File | null) {
       if (!file) {
-        this.imageData = null
+        this.uploadedImageData = null
         return
       }
       const reader = new FileReader()
@@ -78,7 +76,7 @@ export default Vue.extend({
         'load',
         () => {
           // get base64 without url headers for imgur
-          this.imageData = btoa(reader.result as string)
+          this.uploadedImageData = btoa(reader.result as string)
         },
         false
       )
@@ -86,7 +84,7 @@ export default Vue.extend({
     },
     async saveImage() {
       this.loading = true
-      const link = await imgur.uploadImage(this.imageData)
+      const link = await imgur.uploadImage(this.uploadedImageData)
       try {
         this.$emit('set', link)
         this.$emit('notify', 'Cloud Upload Successful')
@@ -96,7 +94,7 @@ export default Vue.extend({
       }
       this.$refs.fileInput.value = null
       this.loading = false
-      this.imageData = null
+      this.uploadedImageData = null
       this.close()
     },
     open() {

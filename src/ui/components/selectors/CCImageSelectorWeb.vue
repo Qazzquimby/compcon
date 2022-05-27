@@ -31,7 +31,7 @@
             placeholder="Select Image"
             prepend-icon="mdi-file-upload-outline"
             :disabled="loading"
-            @change="onChange"
+            @change="uploadImage"
           />
           <div>
             <i>10MB maximum file size. PNG files over 5MB will be converted to JPEGs.</i>
@@ -49,7 +49,7 @@
             />
             <cc-btn
               color="secondary"
-              :disabled="!selectedImage && (!imageData || loading)"
+              :disabled="!selectedPresetImage && (!uploadedImageData || loading)"
               @click="saveImage()"
             >
               <template v-if="!loading">Set Image</template>
@@ -85,63 +85,63 @@ export default Vue.extend({
     },
   },
   data: () => ({
-    selectedImage: null,
-    imageData: null,
+    selectedPresetImage: null,
+    uploadedImageData: null,
     loading: false,
   }),
   computed: {
     displayImage() {
-      if (this.selectedImage) return this.selectedImage
-      if (this.imageData) return `data:image/png;base64,${this.imageData}`
+      if (this.selectedPresetImage) return this.selectedPresetImage
+      if (this.uploadedImageData) return `data:image/png;base64,${this.uploadedImageData}`
       else if (this.item.Portrait) return this.item.Portrait
       else return 'https://via.placeholder.com/550'
     },
     isPixel() {
-      return this.selectedImage && path.basename(this.selectedImage).includes('_pixel')
+      return this.selectedPresetImage && path.basename(this.selectedPresetImage).includes('_pixel')
     },
   },
   methods: {
-    onChange(file: File | null) {
+    uploadImage(file: File | null) {
       if (!file) {
-        this.imageData = null
+        this.uploadedImageData = null
         return
       }
-      this.selectedImage = null
+      this.selectedPresetImage = null
       const reader = new FileReader()
       reader.addEventListener(
         'load',
         () => {
           // get base64 without url headers for imgur
-          this.imageData = btoa(reader.result as string)
+          this.uploadedImageData = btoa(reader.result as string)
         },
         false
       )
       reader.readAsBinaryString(file)
     },
     async saveImage() {
-      if (this.selectedImage && this.validURL(this.selectedImage)) {
-        this.item.PortraitController.SetCloudImage(this.selectedImage)
+      if (this.selectedPresetImage && this.validURL(this.selectedPresetImage)) {
+        this.item.PortraitController.SetCloudImage(this.selectedPresetImage)
         this.close()
-      } else if (this.selectedImage) {
+      } else if (this.selectedPresetImage) {
         this.item.PortraitController.SetCloudImage(null)
-        this.item.PortraitController.SetLocalImage(path.basename(this.selectedImage))
+        this.item.PortraitController.SetLocalImage(path.basename(this.selectedPresetImage))
         this.close()
       } else {
         this.loading = true
-        this.selectedImage = null
-        const link = await imgur.uploadImage(this.imageData)
+        this.selectedPresetImage = null
+        const link = await imgur.uploadImage(this.uploadedImageData)
         try {
           this.item.PortraitController.SetCloudImage(link)
           this.$emit('notify', 'Cloud Upload Successful')
         } catch (err) {
           this.$emit('notify', `Error Uploading to Cloud:<br>${err.message}`)
           this.loading = true
-          this.selectedImage = null
+          this.selectedPresetImage = null
         }
         this.close()
         this.$refs.fileInput.value = null
         this.loading = false
-        this.imageData = null
+        this.uploadedImageData = null
       }
     },
     // Pulled from Stackoverflow: https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url
