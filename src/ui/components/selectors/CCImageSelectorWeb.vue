@@ -39,23 +39,13 @@
         </v-col>
         <v-col>
           <div class="text-center">
-            <!--            <vue-croppie-->
-            <!--              ref="croppieRef"-->
-            <!--              :boundary="{ width: 500, height: 500 }"-->
-            <!--              @result="result"-->
-            <!--              @update="update"-->
-            <!--            ></vue-croppie>-->
-
-            <!--            <img v-bind:src="cropped" />-->
-
-            <!--            <button @click="bind()">Bind</button>-->
-            <!--            &lt;!&ndash; Rotate angle is Number &ndash;&gt;-->
-            <!--            <button @click="rotate(-90)">Rotate Left</button>-->
-            <!--            <button @click="rotate(90)">Rotate Right</button>-->
-            <!--            <button @click="crop()">Crop Via Callback</button>-->
-            <!--            <button @click="cropViaEvent()">Crop Via Event</button>-->
-
+            <vue-croppie
+              v-show="uploadedImageData"
+              ref="croppieRef"
+              :boundary="{ width: 500, height: 500 }"
+            ></vue-croppie>
             <v-img
+              v-show="!uploadedImageData"
               :src="displayImage"
               contain
               max-width="500px"
@@ -116,6 +106,16 @@ export default Vue.extend({
       return this.selectedPresetImage && path.basename(this.selectedPresetImage).includes('_pixel')
     },
   },
+  watch: {
+    // When uploadedImageData changes, bind to croppie
+    uploadedImageData(newVal) {
+      if (newVal) {
+        this.$refs.croppieRef.bind({
+          url: `data:image/png;base64,${newVal}`,
+        })
+      }
+    },
+  },
   methods: {
     selectPreset(preset) {
       this.uploadedImageData = null
@@ -149,19 +149,23 @@ export default Vue.extend({
       } else {
         this.loading = true
         this.selectedPresetImage = null
-        const link = await imgur.uploadImage(this.uploadedImageData)
-        try {
-          this.item.PortraitController.SetCloudImage(link)
-          this.$emit('notify', 'Cloud Upload Successful')
-        } catch (err) {
-          this.$emit('notify', `Error Uploading to Cloud:<br>${err.message}`)
-          this.loading = true
-          this.selectedPresetImage = null
-        }
-        this.close()
-        this.$refs.fileInput.value = null
-        this.loading = false
-        this.uploadedImageData = null
+        // Save cropped image data
+        this.$refs.croppieRef.result({}, async cropped => {
+          const croppedImageData = cropped.split('base64,')[1]
+          const link = await imgur.uploadImage(croppedImageData)
+          try {
+            this.item.PortraitController.SetCloudImage(link)
+            this.$emit('notify', 'Cloud Upload Successful')
+          } catch (err) {
+            this.$emit('notify', `Error Uploading to Cloud:<br>${err.message}`)
+            this.loading = true
+            this.selectedPresetImage = null
+          }
+          this.close()
+          this.$refs.fileInput.value = null
+          this.loading = false
+          this.uploadedImageData = null
+        })
       }
     },
     // Pulled from Stackoverflow: https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url
