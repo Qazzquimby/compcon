@@ -13,12 +13,12 @@
           <mech-image-selector
             v-if="type === 'mech'"
             :mech="item"
-            @set-img="selectedImage = $event"
+            @set-img="selectPreset($event)"
           />
           <pilot-image-selector
             v-if="type === 'pilot'"
             :pilot="item"
-            @set-img="selectedImage = $event"
+            @set-img="selectPreset($event)"
           />
           <v-divider class="mx-3" />
           <div class="heading h3 ml-n2">UPLOAD IMAGE</div>
@@ -39,6 +39,22 @@
         </v-col>
         <v-col>
           <div class="text-center">
+            <!--            <vue-croppie-->
+            <!--              ref="croppieRef"-->
+            <!--              :boundary="{ width: 500, height: 500 }"-->
+            <!--              @result="result"-->
+            <!--              @update="update"-->
+            <!--            ></vue-croppie>-->
+
+            <!--            <img v-bind:src="cropped" />-->
+
+            <!--            <button @click="bind()">Bind</button>-->
+            <!--            &lt;!&ndash; Rotate angle is Number &ndash;&gt;-->
+            <!--            <button @click="rotate(-90)">Rotate Left</button>-->
+            <!--            <button @click="rotate(90)">Rotate Right</button>-->
+            <!--            <button @click="crop()">Crop Via Callback</button>-->
+            <!--            <button @click="cropViaEvent()">Crop Via Event</button>-->
+
             <v-img
               :src="displayImage"
               contain
@@ -101,6 +117,10 @@ export default Vue.extend({
     },
   },
   methods: {
+    selectPreset(preset) {
+      this.uploadedImageData = null
+      this.selectedPresetImage = preset
+    },
     uploadImage(file: File | null) {
       if (!file) {
         this.uploadedImageData = null

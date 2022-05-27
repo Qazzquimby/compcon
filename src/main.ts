@@ -30,6 +30,8 @@ import Amplify from 'aws-amplify'
 import '@aws-amplify/ui-vue'
 import { awsmobile } from './aws-exports'
 import { getThemePreload } from './classes/utility/ThemeManager'
+import VueCroppie from 'vue-croppie'
+import 'croppie/croppie.css'
 
 Amplify.configure(awsmobile)
 
@@ -51,6 +53,8 @@ Vue.use(TiptapVuetifyPlugin, {
   vuetify,
   iconsGroup: 'md',
 })
+
+Vue.use(VueCroppie)
 
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 
